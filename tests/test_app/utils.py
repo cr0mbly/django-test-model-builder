@@ -6,16 +6,19 @@ from .models import Author, User
 class AuthorBuilder(ModelBuilder):
     model = Author
 
-    defaults = {
-        'user': lambda: UserBuilder().build(),
-        'publishing_name': fake.name(),
-        'age': fake.number(),
-    }
+    def get_default_fields(self):
+        data = {
+            'user': UserBuilder().build(),
+            'publishing_name': fake.name(),
+            'age': fake.number(),
+        }
+        return data
 
 
 class UserBuilder(ModelBuilder):
     model = User
 
-    defaults = {
-        'email': fake.email(),
-    }
+    def get_default_fields(self):
+        return {
+            'email': fake.email(),
+        }

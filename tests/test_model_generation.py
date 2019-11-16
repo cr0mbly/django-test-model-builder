@@ -2,6 +2,7 @@ from django.test import TestCase
 from django_test_model_builder import fake
 
 from .test_app.utils import AuthorBuilder
+from .test_app.models import Author
 
 class TestAuthorModelCreation(TestCase):
 
@@ -19,3 +20,17 @@ class TestAuthorModelCreation(TestCase):
             .build()
         )
         self.assertEqual(new_publishing_name, author.publishing_name)
+        self.assertEqual(1, Author.objects.count())
+
+    def test_multiple_models_are_generated_with_different_pks(self):
+        number_of_models_to_generate = 50
+
+        for _ in range(number_of_models_to_generate):
+            author_id = AuthorBuilder().build().pk
+            self.assertIsInstance(author_id, int)
+
+        self.assertEqual(
+            number_of_models_to_generate, Author.objects.all().count()
+        )
+
+

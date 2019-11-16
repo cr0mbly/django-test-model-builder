@@ -5,15 +5,11 @@ class User(models.Model):
     email = models.EmailField(max_length=254)
 
     def __str__(self):
-        return '({"User #{}: {})'.format(
-            self.pk, self.email,
-        )
+        return '(User #{0}: {1})'.format(self.pk, self.email)
 
 
     def __repr__(self):
-        return '({"User #{}: {})'.format(
-            self.pk, self.email,
-        )
+        return '(User #{0}: {1})'.format(self.pk, self.email)
 
 
 class Author(models.Model):
@@ -23,6 +19,7 @@ class Author(models.Model):
     age = models.IntegerField()
 
     def __str__(self):
-        return '({"Author #{}: {})'.format(
-            self.pk, self.publishing_name,
-        )
+        return '(Author #{}: {})'.format(self.pk, self.publishing_name)
+
+    def __repr__(self):
+        return '(Author #{}: {})'.format(self.pk, self.publishing_name)
