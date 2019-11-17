@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django_test_model_builder import fake
+from django_test_model_builder.exceptions import CannotSetFieldOnModelException
 
 from .test_app.utils import AuthorBuilder
 from .test_app.models import Author
+
 
 class TestAuthorModelCreation(TestCase):
 
@@ -33,4 +35,25 @@ class TestAuthorModelCreation(TestCase):
             number_of_models_to_generate, Author.objects.all().count()
         )
 
+    def test_dynamic_field_setter_changes(self):
+        class CustomAuthorBuilder(AuthorBuilder):
+            dynamic_field_setter_prefix = 'set_'
 
+        new_publishing_name = fake.gibberish()
+        author = (
+            CustomAuthorBuilder()
+            .set_publishing_name(new_publishing_name)
+            .build()
+        )
+        self.assertEqual(new_publishing_name, author.publishing_name)
+        self.assertEqual(1, Author.objects.count())
+
+    def test_setting_non_existant_field_raises_an_exception(self):
+        self.assertRaises(
+            CannotSetFieldOnModelException,
+            lambda: (
+                AuthorBuilder()
+                .with_non_existant_field(fake.gibberish())
+                .build()
+            )
+        )

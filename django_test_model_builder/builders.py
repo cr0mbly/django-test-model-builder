@@ -3,30 +3,35 @@ import copy
 from django.db import models
 
 from . import fake
+from .exceptions import CannotSetFieldOnModelException
 
 
 class ModelBuilder:
     data = {}
+    dynamic_field_setter_prefix = 'with_'
 
     def __getattribute__(self, name):
         """
         Overridden handler to support field and custom field and method
-        resolution for models. Implement using a chained with_<fieldname>
-        to set a custom field on the subclassed model e.g.
+        resolution for models. Implement using a chained
+        dynamic_field_setter_prefix<fieldname> to set a custom field
+        on the subclassed model e.g:
 
         Class FooBuilder(ModelBuilder):
-            with_username(self, name):
+            <dynamic_field_setter_prefix>_username(self, name):
                 self.data['name'] = name or fake.gibberish()
         """
-        # Handle anything without prefix normally
-        if not name.startswith('with_'):
+        # Handle anything without prefix normally.
+        if name == 'dynamic_field_setter_prefix':
+            return super().__getattribute__(name)
+
+        if not name.startswith(self.dynamic_field_setter_prefix):
             return super().__getattribute__(name)
 
         # If prefixed function already exists, wrap it in a copy to allow
         # for side effect free chaining.
         try:
             attribute = super().__getattribute__(name)
-
             def f(*args, **kwargs):
                 attribute(*args, **kwargs)
                 return self._copy()
@@ -36,11 +41,17 @@ class ModelBuilder:
         # Otherwise dynamically create a default that adds the value to the
         # data dict and returns a copy of the result.
         except AttributeError:
-            if name.startswith('with_'):
-
+            if name.startswith(self.dynamic_field_setter_prefix):
                 def f(value):
-                    self.data[name[len('with_') :]] = value
-                    return self._copy()
+                    field_name = name[len(self.dynamic_field_setter_prefix):]
+                    if hasattr(self.model, field_name):
+                        self.data[field_name] = value
+                        return self._copy()
+
+                    raise CannotSetFieldOnModelException(
+                        'Cannot use method {} as field {} does not exist'
+                        .format(name, field_name)
+                    )
 
                 return f
 
@@ -104,7 +115,8 @@ class ModelBuilder:
             if k in self._get_model_attributes()
         })
 
-        # Merge defaults with data provided using with_ prefix methods.
+        # Merge defaults with data provided using
+        # dynamic_field_setter_prefix prefix methods.
         model_data.update(
             {k: v for k, v in model_data.items() if k not in self.data}
         )
@@ -113,13 +125,13 @@ class ModelBuilder:
             {k: v() if callable(v) else v for k, v in model_data.items()}
         )
 
-        # Change any models into there pks
+        # Change any models into there pks.
         for field, value in model_data.items():
             if isinstance(value, models.Model):
                 del model_data[field]
                 model_data[field + '_id'] = value.pk
 
-        # Preform pre-db save actions
+        # Preform pre-db save actions.
         self.pre()
 
         # Attach fields to in memory model.
@@ -128,7 +140,7 @@ class ModelBuilder:
         if save_to_db:
             self.instance.save()
 
-        # Preform post-db save actions
+        # Preform post-db save actions.
         self.post()
 
         return self.instance

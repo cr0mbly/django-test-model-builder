@@ -1,0 +1,2 @@
+class CannotSetFieldOnModelException(Exception):
+    pass
