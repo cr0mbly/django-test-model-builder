@@ -24,7 +24,7 @@ class TestAuthorModelCreation(TestCase):
         self.assertEqual(new_publishing_name, author.publishing_name)
         self.assertEqual(1, Author.objects.count())
 
-    def test_multiple_models_are_generated_with_different_pks(self):
+    def test_multiple_models_are_generated_with_distinct_pks(self):
         number_of_models_to_generate = 50
 
         for _ in range(number_of_models_to_generate):
@@ -48,6 +48,19 @@ class TestAuthorModelCreation(TestCase):
         self.assertEqual(new_publishing_name, author.publishing_name)
         self.assertEqual(1, Author.objects.count())
 
+    def test_default_is_set_on_build(self):
+        new_publishing_name = fake.name()
+
+        class CustomAuthorBuilder(AuthorBuilder):
+            def get_default_fields(self):
+                defaults = super().get_default_fields()
+                defaults['publishing_name'] = new_publishing_name
+                return defaults
+
+        author = CustomAuthorBuilder().build()
+        self.assertEqual(new_publishing_name, author.publishing_name)
+        self.assertEqual(1, Author.objects.count())
+
     def test_setting_non_existant_field_raises_an_exception(self):
         self.assertRaises(
             CannotSetFieldOnModelException,
@@ -57,3 +70,16 @@ class TestAuthorModelCreation(TestCase):
                 .build()
             )
         )
+
+    def test_builder_can_chain_fields(self):
+        new_publishing_name = fake.gibberish()
+        new_age = fake.number()
+        author = (
+            AuthorBuilder()
+            .with_publishing_name(new_publishing_name)
+            .with_age(new_age)
+            .build()
+        )
+        self.assertEqual(new_publishing_name, author.publishing_name)
+        self.assertEqual(new_age, author.age)
+        self.assertEqual(1, Author.objects.count())

@@ -7,12 +7,11 @@ class AuthorBuilder(ModelBuilder):
     model = Author
 
     def get_default_fields(self):
-        data = {
+        return {
             'user': UserBuilder().build(),
             'publishing_name': fake.name(),
             'age': fake.number(),
         }
-        return data
 
 
 class UserBuilder(ModelBuilder):

@@ -7,8 +7,10 @@ from .exceptions import CannotSetFieldOnModelException
 
 
 class ModelBuilder:
-    data = {}
     dynamic_field_setter_prefix = 'with_'
+
+    def __init__(self):
+        self.cached_model_field_values = {}
 
     def __getattribute__(self, name):
         """
@@ -18,13 +20,15 @@ class ModelBuilder:
         on the subclassed model e.g:
 
         Class FooBuilder(ModelBuilder):
-            <dynamic_field_setter_prefix>_username(self, name):
-                self.data['name'] = name or fake.gibberish()
+            <dynamic_field_setter_prefix>username(self, name):
+                self.cached_model_field_values['name'] = name or fake.name()
         """
-        # Handle anything without prefix normally.
+
+        # Ignore defined setter attribute prefix.
         if name == 'dynamic_field_setter_prefix':
             return super().__getattribute__(name)
 
+        # Handle anything without prefix normally.
         if not name.startswith(self.dynamic_field_setter_prefix):
             return super().__getattribute__(name)
 
@@ -39,13 +43,13 @@ class ModelBuilder:
             return f
 
         # Otherwise dynamically create a default that adds the value to the
-        # data dict and returns a copy of the result.
+        # cached_model_field_values and returns a copy of the result.
         except AttributeError:
             if name.startswith(self.dynamic_field_setter_prefix):
-                def f(value):
+                def default_field_call(value):
                     field_name = name[len(self.dynamic_field_setter_prefix):]
                     if hasattr(self.model, field_name):
-                        self.data[field_name] = value
+                        self.cached_model_field_values[field_name] = value
                         return self._copy()
 
                     raise CannotSetFieldOnModelException(
@@ -53,9 +57,9 @@ class ModelBuilder:
                         .format(name, field_name)
                     )
 
-                return f
+                return default_field_call
 
-            raise
+            raise AttributeError
 
     def _get_model_attributes(self):
         return [f.attname for f in self.model._meta.fields]
@@ -111,19 +115,17 @@ class ModelBuilder:
         # temporarily set it for field addition on self.data.
         model_data.update({
             k: v
-            for k, v in self.data.items()
+            for k, v in self.cached_model_field_values.items()
             if k in self._get_model_attributes()
         })
 
-        # Merge defaults with data provided using
+        # Merge defaults with cached_model_field_values provided using
         # dynamic_field_setter_prefix prefix methods.
-        model_data.update(
-            {k: v for k, v in model_data.items() if k not in self.data}
-        )
-
-        model_data.update(
-            {k: v() if callable(v) else v for k, v in model_data.items()}
-        )
+        model_data.update({
+            k: v
+            for k, v in model_data.items()
+            if k not in self.cached_model_field_values
+        })
 
         # Change any models into there pks.
         for field, value in model_data.items():
