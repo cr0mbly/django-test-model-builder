@@ -92,6 +92,13 @@ class ModelBuilder:
         Extendable by Subclassed ModelBuilder.
         """
 
+    def create(self, instance):
+        """
+        Stub call for saving the as built in memory model, can be overridden to
+        provide a more custom implementation on how the model should be saved.
+        """
+        instance.save()
+
     def post(self):
         """
         Complete any post processing after the instance is created.
@@ -140,7 +147,7 @@ class ModelBuilder:
         self.instance = self.model(**model_data)
 
         if save_to_db:
-            self.instance.save()
+            self.create(self.instance)
 
         # Preform post-db save actions.
         self.post()

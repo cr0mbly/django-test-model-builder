@@ -22,8 +22,8 @@ Quickstart
         def get_default_fields(self):
             return {'username': 'test_username'}
 
-    >>> user = UserBuilder().build()
-    >>> print(user.username)
+    user = UserBuilder().build()
+    print(user.username)
     >>> test_username
 
 
@@ -32,7 +32,7 @@ Quickstart
 .. code-block:: python
 
     user = UserBuilder().with_username('test').build()
-    user.username
+    >>> user.username
     >>> test
 
 
@@ -45,10 +45,10 @@ Quickstart
     user_2 = builder.build()
 
     user_1.username == user_2.username
-    # True
+    >>> True
 
     user_1 == user_2
-    # False
+    >>> False
 
 **Update models without updating tests**
 
@@ -60,15 +60,16 @@ Quickstart
 
     class UserBuilder(ModelBuilder):
         model = User
-        defaults = {
-            'username': random_string,
-            'dob': date(1990, 1, 1),
-        }
+        def get_default_fields(self):
+            return {
+                'username': random_string,
+                'dob': date(1990, 1, 1),
+            }
 
     user = UserBuilder().build()
 
     user.dob
-    # date(1990, 1, 1)
+    >>> date(1990, 1, 1)
 
     user = (
         UserBuilder()
@@ -77,11 +78,11 @@ Quickstart
     )
 
     user.dob
-    # date(2000, 1, 1)
+    >>> date(2000, 1, 1)
 
 **Setting defaults**
 
-The defaults dictionary is used to populate any unset model fields when the
+The get_default_fields returns a dictionary used to populate any unset model fields when the
 model is created. These can be values or callables if you need to delay the
 creation of models until it is needed or want to generate random data for each
 instance to avoid breaking database constraints.
@@ -90,15 +91,14 @@ instance to avoid breaking database constraints.
 
     class UserBuilder(object):
         model = User
-        defaults = {
-            # Callable, each user will have a random username.
-            'username': random_string,
 
-            # Value, each user will have the same date of birth.
-            'dob': date(1990, 1, 1),
+        def get_default_fields():
+            return {
+                # Callable, each user will have a random username.
+                'username': random_string,
 
-            # Lambda, avoid creating models before they are loaded.
-            'profile': lambda: ProfileBuilder().build()
+                # Value, each user will have the same date of birth.
+                'dob': date(1990, 1, 1),
         }
 
 
@@ -111,15 +111,24 @@ defaults.
 
     class UserBuilder(object):
         model = User
-        defaults = {
-            'username': random_string,
-            'dob': date(1990, 1, 1),
-        }
+        def get_default_fields():
+            return {
+                'username': random_string,
+                'dob': date(1990, 1, 1),
+            }
 
-    >>> UserBuilder().with_dob(date.today()).build()
+    user = UserBuilder().with_dob(date(2019, 10, 10)).build()
+    user.dob
+    >>> date(2019, 10, 10)
 
 All these functions do it set the passed value as the function name in an
 internal dictionary. This pattern can be used to create more readable tests.
+
+Any function prefixed with `with_` is automatically wrapped with a function
+that returns a copy of the builder for side-effect-free chaining.
+
+You can also explicitly define these with_<> on the ModelBuilder subclass
+to add your own implementation.
 
 .. code-block:: python
 
@@ -127,18 +136,17 @@ internal dictionary. This pattern can be used to create more readable tests.
 
     class UserBuilder(object):
         model = User
-        defaults = {
-            'username': random_string,
-            'dob': date(1990, 1, 1)}
+        def get_default_fields():
+            return {
+                'username': random_string,
+                'dob': date(1990, 1, 1)
+            }
 
         def with_under_18():
             self.data['dob'] = date.today() - timedelta(years=17)
 
     UserBuilder().under_18().build()
 
-
-Any function prefixed with `with_` is automatically wrapped with a function
-that returns a copy of the builder for side-effect-free chaining.
 
 **Calling `.build()`**
 
@@ -147,6 +155,9 @@ Building the model is broken broken into four steps.
 * Perform pre processing.
 * Create the instance.
 * Perform post possessing.
+
+There is also a save_to_db kwarg that can be set to optionally persist the
+built model to memory only for use in more complicated tests.
 
 **Perform pre processing**
 
@@ -159,10 +170,11 @@ extended to perform additional preprocessing of fields.
 
     class UserBuilder(object):
         model = User
-        defaults = {
-            'username': random_string,
-            'dob': date(1990, 1, 1),
-        }
+        def get_default_fields():
+            return {
+                'username': random_string,
+                'dob': date(1990, 1, 1),
+            }
 
         def pre(self):
             self['dob'] += timedelta(days=1)
@@ -181,12 +193,16 @@ instance attribute`self.instance = ...`.
 
     class UserBuilder(object):
         model = User
-        defaults = {'username': random_string}
 
-        def create(self):
+        def get_default_fields():
+            return {
+                'username': random_string,
+            }
+
+        def create(self, instance):
             model = self.get_model()
             try:
-                self.instance = self.model.objects.get(
+                instance = self.model.objects.get(
                     username=self.data['username']
                 )
             except model.objects.DoesNotExist:
@@ -197,7 +213,7 @@ instance attribute`self.instance = ...`.
     user_2 = builder.build()
 
     user_1 == user_2
-    # True
+    >>> True
 
 **Preform post processing**
 
@@ -209,7 +225,11 @@ models.
 
     class UserBuilder(object):
         model = User
-        defaults = {'username': random_string}
+
+        def get_default_fields():
+            return {
+                'username': random_string,
+            }
 
         def with_emails(*args):
             self.data['emails'] = args
@@ -230,4 +250,4 @@ models.
     )
 
     user.email_set.count()
-    # 2
+    >>> 2

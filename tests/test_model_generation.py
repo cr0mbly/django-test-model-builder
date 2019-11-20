@@ -83,3 +83,14 @@ class TestAuthorModelCreation(TestCase):
         self.assertEqual(new_publishing_name, author.publishing_name)
         self.assertEqual(new_age, author.age)
         self.assertEqual(1, Author.objects.count())
+
+
+    def test_builder_can_save_model_in_memory(self):
+        new_publishing_name = fake.gibberish()
+        author = (
+            AuthorBuilder()
+            .with_publishing_name(new_publishing_name)
+            .build(save_to_db=False)
+        )
+        self.assertEqual(new_publishing_name, author.publishing_name)
+        self.assertEqual(0, Author.objects.count())
