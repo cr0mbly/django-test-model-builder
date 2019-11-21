@@ -1,4 +1,4 @@
-from django_test_model_builder import ModelBuilder, fake
+from django_test_model_builder import ModelBuilder
 
 from .models import Author, User
 
@@ -9,8 +9,8 @@ class AuthorBuilder(ModelBuilder):
     def get_default_fields(self):
         return {
             'user': UserBuilder().build(),
-            'publishing_name': fake.name(),
-            'age': fake.number(),
+            'publishing_name': 'Jack Jackson',
+            'age': 23,
         }
 
 
@@ -19,5 +19,5 @@ class UserBuilder(ModelBuilder):
 
     def get_default_fields(self):
         return {
-            'email': fake.email(),
+            'email': 'fakeFakeson@gmail.com',
         }

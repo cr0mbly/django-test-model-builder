@@ -18,7 +18,7 @@ setup(
         'updating tests less painful.'
     ),
     install_requires=[
-        'faker',
+        'Django',
     ],
     url='https://github.com/publons/django-test-model-builder',
     author='Matthew Betts, Aidan Houlihan',

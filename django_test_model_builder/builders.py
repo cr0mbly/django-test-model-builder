@@ -2,9 +2,19 @@ import copy
 
 from django.db import models
 
-from . import fake
 from .exceptions import CannotSetFieldOnModelException
 
+
+def id_generator():
+    """
+    Helper generator for creating unique pks for models.
+    """
+    i = 1
+    while True:
+        yield i
+        i += 1
+
+model_id_generator = id_generator()
 
 class ModelBuilder:
     dynamic_field_setter_prefix = 'with_'
@@ -21,7 +31,7 @@ class ModelBuilder:
 
         Class FooBuilder(ModelBuilder):
             <dynamic_field_setter_prefix>username(self, name):
-                self.cached_model_field_values['name'] = name or fake.name()
+                self.cached_model_field_values['name'] = name or 'Billy'
         """
 
         # Ignore defined setter attribute prefix.
@@ -92,12 +102,12 @@ class ModelBuilder:
         Extendable by Subclassed ModelBuilder.
         """
 
-    def create(self, instance):
+    def create(self):
         """
         Stub call for saving the as built in memory model, can be overridden to
         provide a more custom implementation on how the model should be saved.
         """
-        instance.save()
+        self.instance.save()
 
     def post(self):
         """
@@ -115,7 +125,9 @@ class ModelBuilder:
 
         # Generarate unique pk.
         model_data['id'] = (
-            model_data['id'] if model_data.get('id') else fake.id()
+            model_data['id']
+            if model_data.get('id') else
+            next(model_id_generator)
         )
 
         # Resolve any custom field implementations values and
@@ -147,7 +159,7 @@ class ModelBuilder:
         self.instance = self.model(**model_data)
 
         if save_to_db:
-            self.create(self.instance)
+            self.create()
 
         # Preform post-db save actions.
         self.post()

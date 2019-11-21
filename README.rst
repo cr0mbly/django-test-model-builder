@@ -82,10 +82,10 @@ Quickstart
 
 **Setting defaults**
 
-The get_default_fields returns a dictionary used to populate any unset model fields when the
-model is created. These can be values or callables if you need to delay the
-creation of models until it is needed or want to generate random data for each
-instance to avoid breaking database constraints.
+The get_default_fields returns a dictionary used to populate any unset model
+fields when the model is created. These can be values or callables if you need
+to delay the creation of models until it is needed or want to generate random
+data for each instance to avoid breaking database constraints.
 
 .. code-block:: python
 
@@ -147,6 +147,22 @@ to add your own implementation.
 
     UserBuilder().under_18().build()
 
+Finally the `with_` prefix is adjustable in case you have a blocking field that
+you want use. For example you can change this to use the prefix `_set` by going
+
+.. code-block:: python
+
+        class CustomAuthorBuilder(AuthorBuilder):
+            dynamic_field_setter_prefix = 'set_'
+
+        author = (
+            CustomAuthorBuilder()
+            .set_publishing_name('Billy Fakeington')
+            .build()
+        )
+
+        author.publishing_name
+        >>> 'Billy Fakeington'
 
 **Calling `.build()`**
 
@@ -199,7 +215,7 @@ instance attribute`self.instance = ...`.
                 'username': random_string,
             }
 
-        def create(self, instance):
+        def create(self):
             model = self.get_model()
             try:
                 instance = self.model.objects.get(
