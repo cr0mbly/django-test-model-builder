@@ -2,6 +2,10 @@
 Django Model Builders
 =====================
 
+.. image:: https://travis-ci.com/publons/django-test-model-builder.svg?token=WSHb2ssbuqzAyoqCvdCs&branch=master
+    :target: https://travis-ci.com/publons/django-test-model-builder
+
+
 A small python / django model designed to decouple creation of models for
 testing from the creation of models in production to make updating tests
 less painful.
