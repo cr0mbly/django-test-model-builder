@@ -8,7 +8,7 @@ class AuthorBuilder(ModelBuilder):
 
     def get_default_fields(self):
         return {
-            'user': UserBuilder().build(),
+            'user': UserBuilder().build,
             'publishing_name': 'Jack Jackson',
             'age': 23,
         }

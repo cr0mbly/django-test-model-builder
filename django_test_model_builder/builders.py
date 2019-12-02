@@ -56,7 +56,7 @@ class ModelBuilder:
         # cached_model_field_values and returns a copy of the result.
         except AttributeError:
             if name.startswith(self.dynamic_field_setter_prefix):
-                def default_field_call(value):
+                def f(value):
                     field_name = name[len(self.dynamic_field_setter_prefix):]
                     if hasattr(self.model, field_name):
                         self.cached_model_field_values[field_name] = value
@@ -67,7 +67,7 @@ class ModelBuilder:
                         .format(name, field_name)
                     )
 
-                return default_field_call
+                return f
 
             raise AttributeError
 
@@ -121,36 +121,40 @@ class ModelBuilder:
         builder. save_to_db=False will render the model in memory for later
         propagation to the database defined by the user.
         """
-        model_data = self.get_default_fields()
 
-        # Generarate unique pk.
+        # Combine defaults and custom field setters
+        model_data = self.get_default_fields()
+        model_data.update(self.cached_model_field_values)
+
+        # Generarate unique pk if not present.
         model_data['id'] = (
             model_data['id']
             if model_data.get('id') else
             next(model_id_generator)
         )
 
-        # Resolve any custom field implementations values and
-        # temporarily set it for field addition on self.data.
+        # Resolve any custom field implementations and add to dict of
+        # fields to add to model
+        model_fields = {}
+        for field, value in self.cached_model_field_values.items():
+            if isinstance(value, models.Model):
+                model_fields[field + '_id'] =  value.pk
+                del model_data[field]
+            else:
+                model_fields[field] = value
+
+        # Filter out any non model fields
         model_data.update({
             k: v
-            for k, v in self.cached_model_field_values.items()
+            for k, v in model_fields.items()
             if k in self._get_model_attributes()
         })
 
-        # Merge defaults with cached_model_field_values provided using
-        # dynamic_field_setter_prefix prefix methods.
-        model_data.update({
-            k: v
-            for k, v in model_data.items()
-            if k not in self.cached_model_field_values
-        })
-
-        # Change any models into there pks.
-        for field, value in model_data.items():
-            if isinstance(value, models.Model):
-                del model_data[field]
-                model_data[field + '_id'] = value.pk
+        # Run any functions bound to defaults or returned
+        # in the custom field setters
+        model_data = {
+            k: v() if callable(v) else v for k, v in model_data.items()
+        }
 
         # Preform pre-db save actions.
         self.pre()

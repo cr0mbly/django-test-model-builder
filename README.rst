@@ -103,6 +103,13 @@ data for each instance to avoid breaking database constraints.
 
                 # Value, each user will have the same date of birth.
                 'dob': date(1990, 1, 1),
+
+                # Called with uninitiated build() call so duplicate model isn't
+                # generated until comparison with any custom `with_` setter
+                # functions, this field will be thrown away
+                # if custom setter is present. You can also use a
+                # lambda to achieve the same thing.
+                'user': UserBuilder().build
         }
 
 

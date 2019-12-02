@@ -1,8 +1,8 @@
 from django.test import TestCase
 from django_test_model_builder.exceptions import CannotSetFieldOnModelException
 
-from .test_app.utils import AuthorBuilder
-from .test_app.models import Author
+from .test_app.utils import AuthorBuilder, UserBuilder
+from .test_app.models import Author, User
 
 
 class TestAuthorModelCreation(TestCase):
@@ -82,6 +82,16 @@ class TestAuthorModelCreation(TestCase):
         self.assertEqual(new_age, author.age)
         self.assertEqual(1, Author.objects.count())
 
+
+    def test_builder_can_override_user(self):
+        new_user = UserBuilder().build()
+        author = (
+            AuthorBuilder()
+            .with_user(new_user)
+            .build()
+        )
+        self.assertEqual(new_user, author.user)
+        self.assertEqual(1, User.objects.count())
 
     def test_builder_can_save_model_in_memory(self):
         author = (
