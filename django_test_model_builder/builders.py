@@ -2,8 +2,6 @@ import copy
 
 from django.db import models
 
-from .exceptions import CannotSetFieldOnModelException
-
 
 def id_generator():
     """
@@ -20,7 +18,7 @@ class ModelBuilder:
     dynamic_field_setter_prefix = 'with_'
 
     def __init__(self):
-        self.cached_model_field_values = {}
+        self.data = {}
 
     def __getattribute__(self, name):
         """
@@ -31,7 +29,7 @@ class ModelBuilder:
 
         Class FooBuilder(ModelBuilder):
             <dynamic_field_setter_prefix>username(self, name):
-                self.cached_model_field_values['name'] = name or 'Billy'
+                self.data['name'] = name or 'Billy'
         """
 
         # Ignore defined setter attribute prefix.
@@ -53,19 +51,13 @@ class ModelBuilder:
             return f
 
         # Otherwise dynamically create a default that adds the value to the
-        # cached_model_field_values and returns a copy of the result.
+        # data and returns a copy of the result.
         except AttributeError:
             if name.startswith(self.dynamic_field_setter_prefix):
                 def f(value):
                     field_name = name[len(self.dynamic_field_setter_prefix):]
-                    if hasattr(self.model, field_name):
-                        self.cached_model_field_values[field_name] = value
-                        return self._copy()
-
-                    raise CannotSetFieldOnModelException(
-                        'Cannot use method {} as field {} does not exist'
-                        .format(name, field_name)
-                    )
+                    self.data[field_name] = value
+                    return self._copy()
 
                 return f
 
@@ -124,7 +116,7 @@ class ModelBuilder:
 
         # Combine defaults and custom field setters
         model_data = self.get_default_fields()
-        model_data.update(self.cached_model_field_values)
+        model_data.update(self.data)
 
         # Generarate unique pk if not present.
         model_data['id'] = (
@@ -136,7 +128,7 @@ class ModelBuilder:
         # Resolve any custom field implementations and add to dict of
         # fields to add to model
         model_fields = {}
-        for field, value in self.cached_model_field_values.items():
+        for field, value in self.data.items():
             if isinstance(value, models.Model):
                 model_fields[field + '_id'] =  value.pk
                 del model_data[field]

@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django_test_model_builder.exceptions import CannotSetFieldOnModelException
 
 from .test_app.utils import AuthorBuilder, UserBuilder
 from .test_app.models import Author, User
@@ -59,16 +58,6 @@ class TestAuthorModelCreation(TestCase):
         author = CustomAuthorBuilder().build()
         self.assertEqual(self.publishing_name, author.publishing_name)
         self.assertEqual(1, Author.objects.count())
-
-    def test_setting_non_existant_field_raises_an_exception(self):
-        self.assertRaises(
-            CannotSetFieldOnModelException,
-            lambda: (
-                AuthorBuilder()
-                .with_non_existant_field(self.publishing_name)
-                .build()
-            )
-        )
 
     def test_builder_can_chain_fields(self):
         new_age = 3
