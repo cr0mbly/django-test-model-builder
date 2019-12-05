@@ -90,3 +90,21 @@ class TestAuthorModelCreation(TestCase):
         )
         self.assertEqual(self.publishing_name, author.publishing_name)
         self.assertEqual(0, Author.objects.count())
+
+
+    def test_builder_can_use_post_builder_calls(self):
+        fake_email = 'test@test.com'
+
+        class CustomAuthorBuilder(AuthorBuilder):
+
+            def with_user_email(self, user_email=None):
+                self.data['user_email'] = user_email
+
+            def post(self):
+                self.instance.user = (
+                    UserBuilder().with_email(self.data['user_email']).build()
+                )
+
+        author = CustomAuthorBuilder().with_user_email(fake_email).build()
+
+        self.assertEqual(fake_email, author.user.email)

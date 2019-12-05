@@ -14,6 +14,7 @@ def id_generator():
 
 model_id_generator = id_generator()
 
+
 class ModelBuilder:
     dynamic_field_setter_prefix = 'with_'
 
@@ -44,6 +45,7 @@ class ModelBuilder:
         # for side effect free chaining.
         try:
             attribute = super().__getattribute__(name)
+
             def f(*args, **kwargs):
                 attribute(*args, **kwargs)
                 return self._copy()
@@ -114,9 +116,14 @@ class ModelBuilder:
         propagation to the database defined by the user.
         """
 
-        # Combine defaults and custom field setters
+        # Combine defaults and custom field setters generating a dictionary of
+        # fields that correspond to the set model.
         model_data = self.get_default_fields()
-        model_data.update(self.data)
+        model_data.update({
+            k: v
+            for k, v in self.data.items()
+            if k in self._get_model_attributes()
+        })
 
         # Generarate unique pk if not present.
         model_data['id'] = (
@@ -125,8 +132,7 @@ class ModelBuilder:
             next(model_id_generator)
         )
 
-        # Resolve any custom field implementations and add to dict of
-        # fields to add to model
+        # Convert any set fields into their pk equivalent.
         model_fields = {}
         for field, value in self.data.items():
             if isinstance(value, models.Model):
