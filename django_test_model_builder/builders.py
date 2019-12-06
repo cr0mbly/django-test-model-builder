@@ -66,7 +66,7 @@ class ModelBuilder:
             raise AttributeError
 
     def _get_model_attributes(self):
-        return [f.attname for f in self.model._meta.fields]
+        return [f.name for f in self.model._meta.fields]
 
     def _copy(self):
         return copy.deepcopy(self)
@@ -80,6 +80,13 @@ class ModelBuilder:
         raise NotImplementedError(
             'Defaults method must be defined to set required fields on model.'
         )
+
+    def get_extra_model_config(self):
+        """
+        Override here with any extra context in dictionary form that you wish
+        to pass to the pre/post hooks to make on demand changes to the app.
+        """
+        return {}
 
     def get_model(self):
         if not hasattr(self, 'model'):
@@ -115,9 +122,8 @@ class ModelBuilder:
         builder. save_to_db=False will render the model in memory for later
         propagation to the database defined by the user.
         """
-
-        # Combine defaults and custom field setters generating a dictionary of
-        # fields that correspond to the set model.
+        # Combine defaults and custom field setters generating a
+        # dictionary of fields that correspond to the set model.
         model_data = self.get_default_fields()
         model_data.update({
             k: v
@@ -133,26 +139,21 @@ class ModelBuilder:
         )
 
         # Convert any set fields into their pk equivalent.
-        model_fields = {}
-        for field, value in self.data.items():
+        for field, value in model_data.items():
             if isinstance(value, models.Model):
-                model_fields[field + '_id'] =  value.pk
-                del model_data[field]
+                model_data[field + '_id'] =  model_data.pop(field).pk
             else:
-                model_fields[field] = value
-
-        # Filter out any non model fields
-        model_data.update({
-            k: v
-            for k, v in model_fields.items()
-            if k in self._get_model_attributes()
-        })
+                model_data[field] = value
 
         # Run any functions bound to defaults or returned
         # in the custom field setters
         model_data = {
             k: v() if callable(v) else v for k, v in model_data.items()
         }
+
+        # Update internal data dictionary with any extra fields
+        # the tester has defined.
+        self.data.update(self.get_extra_model_config())
 
         # Preform pre-db save actions.
         self.pre()

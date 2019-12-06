@@ -145,7 +145,7 @@ to add your own implementation.
 
     from datetime import timedelta
 
-    class UserBuilder(object):
+    class UserBuilder(ModelBuilder):
         model = User
         def get_default_fields():
             return {
@@ -208,6 +208,36 @@ extended to perform additional preprocessing of fields.
 
     UserBuilder().build().dob
     # date(1990, 1, 2)
+
+If you wanting to add non field values for accession by the pre/post hooks
+you can override the `get_extra_model_config` call to load any extra fields
+which will be made available to the self.data dict after the initial model
+fields have been set, for instance:
+
+.. code-block:: python
+
+    class AuthorBuilder(ModelBuilder):
+
+        def get_default_fields():
+            return {
+                'username': random_string,
+                'dob': date(1990, 1, 1)
+            }
+
+        def get_extra_model_config(self):
+            return {
+                'email_address': fake_email
+            }
+
+        def post(self):
+            print(self.dict)
+
+    AuthorBuilder().build()
+    >>> {
+    >>>     'username': random_string,
+    >>>     'dob': date(1990, 1, 1),
+    >>>     'email_address': fake_email
+    >>> }
 
 **Create the instance**
 

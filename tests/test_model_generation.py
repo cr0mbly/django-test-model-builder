@@ -71,7 +71,6 @@ class TestAuthorModelCreation(TestCase):
         self.assertEqual(new_age, author.age)
         self.assertEqual(1, Author.objects.count())
 
-
     def test_builder_can_override_user(self):
         new_user = UserBuilder().build()
         author = (
@@ -91,7 +90,6 @@ class TestAuthorModelCreation(TestCase):
         self.assertEqual(self.publishing_name, author.publishing_name)
         self.assertEqual(0, Author.objects.count())
 
-
     def test_builder_can_use_post_builder_calls(self):
         fake_email = 'test@test.com'
 
@@ -106,5 +104,26 @@ class TestAuthorModelCreation(TestCase):
                 )
 
         author = CustomAuthorBuilder().with_user_email(fake_email).build()
+
+        self.assertEqual(fake_email, author.user.email)
+
+    def test_builder_can_use_post_builder_call_with_set_data(self):
+        fake_email = 'test@test.com'
+
+        class CustomAuthorBuilder(AuthorBuilder):
+
+            def get_extra_model_config(self):
+                return {
+                    'email_address': fake_email
+                }
+
+            def post(self):
+                self.instance.user = (
+                    UserBuilder()
+                    .with_email(self.data['email_address'])
+                    .build()
+                )
+
+        author = CustomAuthorBuilder().build()
 
         self.assertEqual(fake_email, author.user.email)
