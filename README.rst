@@ -93,7 +93,7 @@ data for each instance to avoid breaking database constraints.
 
 .. code-block:: python
 
-    class UserBuilder(object):
+    class UserBuilder(ModelBuilder):
         model = User
 
         def get_default_fields():
@@ -120,7 +120,7 @@ defaults.
 
 .. code-block:: python
 
-    class UserBuilder(object):
+    class UserBuilder(ModelBuilder):
         model = User
         def get_default_fields():
             return {
@@ -195,7 +195,7 @@ extended to perform additional preprocessing of fields.
 
     from datetime import timedelta
 
-    class UserBuilder(object):
+    class UserBuilder(ModelBuilder):
         model = User
         def get_default_fields():
             return {
@@ -248,7 +248,7 @@ instance attribute`self.instance = ...`.
 
 .. code-block:: python
 
-    class UserBuilder(object):
+    class UserBuilder(ModelBuilder):
         model = User
 
         def get_default_fields():
@@ -280,7 +280,7 @@ models.
 
 .. code-block:: python
 
-    class UserBuilder(object):
+    class UserBuilder(ModelBuilder):
         model = User
 
         def get_default_fields():

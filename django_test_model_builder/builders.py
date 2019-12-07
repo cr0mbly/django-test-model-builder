@@ -124,42 +124,49 @@ class ModelBuilder:
         """
         # Combine defaults and custom field setters generating a
         # dictionary of fields that correspond to the set model.
-        model_data = self.get_default_fields()
-        model_data.update({
+        self.model_fields = self.get_default_fields()
+        self.model_fields.update({
             k: v
             for k, v in self.data.items()
             if k in self._get_model_attributes()
         })
 
         # Generarate unique pk if not present.
-        model_data['id'] = (
-            model_data['id']
-            if model_data.get('id') else
+        self.model_fields['id'] = (
+            self.model_fields['id']
+            if self.model_fields.get('id') else
             next(model_id_generator)
         )
 
         # Convert any set fields into their pk equivalent.
-        for field, value in model_data.items():
+        for field, value in self.model_fields.items():
             if isinstance(value, models.Model):
-                model_data[field + '_id'] =  model_data.pop(field).pk
+                self.model_fields[field + '_id'] = (
+                    self.model_fields.pop(field).pk
+                )
             else:
-                model_data[field] = value
+                self.model_fields[field] = value
 
         # Run any functions bound to defaults or returned
         # in the custom field setters
-        model_data = {
-            k: v() if callable(v) else v for k, v in model_data.items()
+        self.model_fields = {
+            k: v() if callable(v) else v for k, v in self.model_fields.items()
         }
 
         # Update internal data dictionary with any extra fields
-        # the tester has defined.
-        self.data.update(self.get_extra_model_config())
+        # the tester has defined. Only set fields that haven't been redefined
+        # in any custom methods.
+        self.data.update({
+            k:v
+            for k, v in self.get_extra_model_config().items()
+            if k not in self.data
+        })
 
         # Preform pre-db save actions.
         self.pre()
 
         # Attach fields to in memory model.
-        self.instance = self.model(**model_data)
+        self.instance = self.model(**self.model_fields)
 
         if save_to_db:
             self.create()

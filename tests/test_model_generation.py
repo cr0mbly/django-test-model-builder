@@ -107,7 +107,7 @@ class TestAuthorModelCreation(TestCase):
 
         self.assertEqual(fake_email, author.user.email)
 
-    def test_builder_can_use_post_builder_call_with_set_data(self):
+    def test_builder_can_use_post_builder_call_with_exta_non_field_data(self):
         fake_email = 'test@test.com'
 
         class CustomAuthorBuilder(AuthorBuilder):
@@ -123,6 +123,48 @@ class TestAuthorModelCreation(TestCase):
                     .with_email(self.data['email_address'])
                     .build()
                 )
+
+        author = CustomAuthorBuilder().build()
+
+        self.assertEqual(fake_email, author.user.email)
+
+    def test_builder_extra_non_field_data_is_overridden_on_redefinition(self):
+        fake_email = 'test@test.com'
+
+        class CustomAuthorBuilder(AuthorBuilder):
+
+            def get_extra_model_config(self):
+                return {
+                    'email_address': 'test_email@gmail.com'
+                }
+
+            def with_alternaitve_email(self, email):
+                self.data['email_address'] = email
+
+            def post(self):
+                self.instance.user = (
+                    UserBuilder()
+                    .with_email(self.data['email_address'])
+                    .build()
+                )
+
+        author = (
+            CustomAuthorBuilder()
+            .with_alternaitve_email(fake_email)
+            .build()
+        )
+
+        self.assertEqual(fake_email, author.user.email)
+
+
+    def test_builder_field_is_redefined_on_pre_configuration(self):
+        fake_email = 'test@test.com'
+
+        class CustomAuthorBuilder(AuthorBuilder):
+
+            def pre(self):
+                self.model_fields['user'].email = fake_email
+                self.model_fields['user'].save()
 
         author = CustomAuthorBuilder().build()
 
