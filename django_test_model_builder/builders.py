@@ -138,15 +138,6 @@ class ModelBuilder:
             next(model_id_generator)
         )
 
-        # Convert any set fields into their pk equivalent.
-        for field, value in self.model_fields.items():
-            if isinstance(value, models.Model):
-                self.model_fields[field + '_id'] = (
-                    self.model_fields.pop(field).pk
-                )
-            else:
-                self.model_fields[field] = value
-
         # Run any functions bound to defaults or returned
         # in the custom field setters
         self.model_fields = {
