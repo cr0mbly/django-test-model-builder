@@ -1,6 +1,6 @@
 from django_test_model_builder import ModelBuilder
 
-from .models import Author, User
+from tests.test_app.models import Author, User
 
 
 class AuthorBuilder(ModelBuilder):

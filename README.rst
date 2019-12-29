@@ -210,7 +210,7 @@ extended to perform additional preprocessing of fields.
     # date(1990, 1, 2)
 
 If you wanting to add non field values for accession by the pre/post hooks
-you can override the `get_extra_model_config` call to load any extra fields
+you can override the `get_builder_context` call to load any extra fields
 which will be made available to the self.data dict after the initial model
 fields have been set, for instance:
 
@@ -224,7 +224,7 @@ fields have been set, for instance:
                 'dob': date(1990, 1, 1)
             }
 
-        def get_extra_model_config(self):
+        def get_builder_context(self):
             return {
                 'email_address': fake_email
             }

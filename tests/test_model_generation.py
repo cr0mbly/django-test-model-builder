@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from .test_app.utils import AuthorBuilder, UserBuilder
-from .test_app.models import Author, User
+from tests.test_app.utils import AuthorBuilder, UserBuilder
+from tests.test_app.models import Author, User
 
 
 class TestAuthorModelCreation(TestCase):
@@ -107,12 +107,12 @@ class TestAuthorModelCreation(TestCase):
 
         self.assertEqual(fake_email, author.user.email)
 
-    def test_builder_can_use_post_builder_call_with_exta_non_field_data(self):
+    def test_builder_can_use_post_builder_call_with_extra_non_field_data(self):
         fake_email = 'test@test.com'
 
         class CustomAuthorBuilder(AuthorBuilder):
 
-            def get_extra_model_config(self):
+            def get_builder_context(self):
                 return {
                     'email_address': fake_email
                 }
@@ -128,17 +128,17 @@ class TestAuthorModelCreation(TestCase):
 
         self.assertEqual(fake_email, author.user.email)
 
-    def test_builder_extra_non_field_data_is_overridden_on_redefinition(self):
+    def test_builder_context_is_overridden_on_redefinition(self):
         fake_email = 'test@test.com'
 
         class CustomAuthorBuilder(AuthorBuilder):
 
-            def get_extra_model_config(self):
+            def get_builder_context(self):
                 return {
                     'email_address': 'test_email@gmail.com'
                 }
 
-            def with_alternaitve_email(self, email):
+            def with_alternative_email(self, email):
                 self.data['email_address'] = email
 
             def post(self):
@@ -150,7 +150,7 @@ class TestAuthorModelCreation(TestCase):
 
         author = (
             CustomAuthorBuilder()
-            .with_alternaitve_email(fake_email)
+            .with_alternative_email(fake_email)
             .build()
         )
 

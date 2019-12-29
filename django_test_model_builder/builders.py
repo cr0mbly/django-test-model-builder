@@ -81,18 +81,18 @@ class ModelBuilder:
             'Defaults method must be defined to set required fields on model.'
         )
 
-    def get_extra_model_config(self):
+    def get_builder_context(self):
         """
-        Override here with any extra context in dictionary form that you wish
-        to pass to the pre/post hooks to make on demand changes to the app.
+        Override here with any extra context that you want to pass to the
+        pre/post hooks to make on demand changes to the app.
         """
         return {}
 
     def get_model(self):
         if not hasattr(self, 'model'):
             raise NotImplementedError(
-                'Model should be set on class or this method should be '
-                'overridden'
+                'Model should be set on class or this method '
+                'should be overridden'
             )
 
         return self.model
@@ -149,7 +149,7 @@ class ModelBuilder:
         # in any custom methods.
         self.data.update({
             k:v
-            for k, v in self.get_extra_model_config().items()
+            for k, v in self.get_builder_context().items()
             if k not in self.data
         })
 
