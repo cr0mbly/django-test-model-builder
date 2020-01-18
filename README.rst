@@ -86,7 +86,7 @@ Quickstart
 
 **Setting defaults**
 
-The get_default_fields returns a dictionary used to populate any unset model
+The :code:`get_default_fields` returns a dictionary used to populate any unset model
 fields when the model is created. These can be values or callables if you need
 to delay the creation of models until it is needed or want to generate random
 data for each instance to avoid breaking database constraints.
@@ -115,7 +115,7 @@ data for each instance to avoid breaking database constraints.
 
 **Providing custom values using the `with_` prefix**
 
-`with_` functions are dynamically generated, these are used to override
+:code:`with_` functions are dynamically generated, these are used to override
 defaults.
 
 .. code-block:: python
@@ -135,10 +135,10 @@ defaults.
 All these functions do it set the passed value as the function name in an
 internal dictionary. This pattern can be used to create more readable tests.
 
-Any function prefixed with `with_` is automatically wrapped with a function
+Any function prefixed with :code:`with_` is automatically wrapped with a function
 that returns a copy of the builder for side-effect-free chaining.
 
-You can also explicitly define these with_<> on the ModelBuilder subclass
+You can also explicitly define these :code:`with_<>` on the ModelBuilder subclass
 to add your own implementation.
 
 .. code-block:: python
@@ -158,8 +158,8 @@ to add your own implementation.
 
     UserBuilder().under_18().build()
 
-Finally the `with_` prefix is adjustable in case you have a blocking field that
-you want use. For example you can change this to use the prefix `_set` by going
+Finally the :code:`with_` prefix is adjustable in case you have a blocking field that
+you want use. For example you can change this to use the prefix :code:`_set` by going
 
 .. code-block:: python
 
@@ -175,20 +175,21 @@ you want use. For example you can change this to use the prefix `_set` by going
         author.publishing_name
         >>> 'Billy Fakeington'
 
-**Calling `.build()`**
+**Calling .build()**
 
-Building the model is broken broken into four steps.
-* Prepare the data dictionary.
-* Perform pre processing.
-* Create the instance.
-* Perform post possessing.
+Building the model is broken into four steps.
 
-There is also a save_to_db kwarg that can be set to optionally persist the
+ - Prepare the data dictionary.
+ - Perform pre processing.
+ - Create the instance.
+ - Perform post possessing.
+
+There is also a :code:`save_to_db` kwarg that can be set to optionally persist the
 built model to memory only for use in more complicated tests.
 
 **Perform pre processing**
 
-By default this method changes models to their their _id suffix. This can be
+By default this method changes models to their their :code:`_id` suffix. This can be
 extended to perform additional preprocessing of fields.
 
 .. code-block:: python
@@ -210,7 +211,7 @@ extended to perform additional preprocessing of fields.
     # date(1990, 1, 2)
 
 If you wanting to add non field values for accession by the pre/post hooks
-you can override the `get_builder_context` call to load any extra fields
+you can override the :code:`get_builder_context` call to load any extra fields
 which will be made available to the self.data dict after the initial model
 fields have been set, for instance:
 
@@ -241,7 +242,7 @@ fields have been set, for instance:
 
 **Create the instance**
 
-By default instances are created by calling `model.objects.create` with the
+By default instances are created by calling :code:`model.objects.create` with the
 models fields from the data dictionary. This behavior can be changed by
 overriding the builders `.create` method, this method must set the builders
 instance attribute`self.instance = ...`.
