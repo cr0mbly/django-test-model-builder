@@ -132,7 +132,7 @@ defaults.
     user.dob
     >>> date(2019, 10, 10)
 
-All these functions do it set the passed value as the function name in an
+All these functions do is set the passed in value as the function name in an
 internal dictionary. This pattern can be used to create more readable tests.
 
 Any function prefixed with :code:`with_` is automatically wrapped with a function
@@ -159,7 +159,7 @@ to add your own implementation.
     UserBuilder().under_18().build()
 
 Finally the :code:`with_` prefix is adjustable in case you have a blocking field that
-you want use. For example you can change this to use the prefix :code:`_set` by going
+you want use. For example you can change this to use the prefix :code:`set_` by going
 
 .. code-block:: python
 
@@ -179,10 +179,10 @@ you want use. For example you can change this to use the prefix :code:`_set` by 
 
 Building the model is broken into four steps.
 
- - Prepare the data dictionary.
- - Perform pre processing.
- - Create the instance.
- - Perform post possessing.
+- Prepare the data dictionary.
+- Perform pre processing.
+- Create the instance.
+- Perform post possessing.
 
 There is also a :code:`save_to_db` kwarg that can be set to optionally persist the
 built model to memory only for use in more complicated tests.
