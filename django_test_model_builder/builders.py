@@ -3,18 +3,6 @@ import copy
 from django.db import models
 
 
-def id_generator():
-    """
-    Helper generator for creating unique pks for models.
-    """
-    i = 1
-    while True:
-        yield i
-        i += 1
-
-model_id_generator = id_generator()
-
-
 class ModelBuilder:
     dynamic_field_setter_prefix = 'with_'
 
@@ -130,13 +118,6 @@ class ModelBuilder:
             for k, v in self.data.items()
             if k in self._get_model_attributes()
         })
-
-        # Generarate unique pk if not present.
-        self.model_fields['id'] = (
-            self.model_fields['id']
-            if self.model_fields.get('id') else
-            next(model_id_generator)
-        )
 
         # Run any functions bound to defaults or returned
         # in the custom field setters

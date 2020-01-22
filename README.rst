@@ -5,7 +5,6 @@ Django Model Builders
 .. image:: https://travis-ci.com/publons/django-test-model-builder.svg?token=WSHb2ssbuqzAyoqCvdCs&branch=master
     :target: https://travis-ci.com/publons/django-test-model-builder
 
-
 A small python / django model designed to decouple creation of models for
 testing from the creation of models in production to make updating tests
 less painful.
@@ -86,10 +85,10 @@ Quickstart
 
 **Setting defaults**
 
-The :code:`get_default_fields` returns a dictionary used to populate any unset model
-fields when the model is created. These can be values or callables if you need
-to delay the creation of models until it is needed or want to generate random
-data for each instance to avoid breaking database constraints.
+The :code:`get_default_fields` returns a dictionary used to populate any unset
+model fields when the model is created. These can be values or callables if you
+need to delay the creation of models until it is needed or want to generate
+random data for each instance to avoid breaking database constraints.
 
 .. code-block:: python
 
@@ -113,7 +112,7 @@ data for each instance to avoid breaking database constraints.
         }
 
 
-**Providing custom values using the `with_` prefix**
+**Providing custom values using the "with_" prefix**
 
 :code:`with_` functions are dynamically generated, these are used to override
 defaults.
@@ -242,9 +241,9 @@ fields have been set, for instance:
 
 **Create the instance**
 
-By default instances are created by calling :code:`model.objects.create` with the
-models fields from the data dictionary. This behavior can be changed by
-overriding the builders `.create` method, this method must set the builders
+By default instances are created by calling :code:`model.objects.create`
+with the models fields from the data dictionary. This behavior can be changed
+by overriding the builders `.create` method, this method must set the builders
 instance attribute`self.instance = ...`.
 
 .. code-block:: python
